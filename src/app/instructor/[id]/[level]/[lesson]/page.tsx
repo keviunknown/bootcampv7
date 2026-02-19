@@ -9,7 +9,6 @@ import { LessonSidebar } from '@/components/LessonSidebar';
 import { ProgressTracker } from '@/components/ProgressTracker';
 import { FinalCodeUnlock } from '@/components/FinalCodeUnlock';
 import { Lesson, Level, LessonProgress, Instructor } from '@/lib/types';
-import { fetchLessonById, fetchLessons } from '@/lib/contentApi';
 import { saveLessonProgress, getUserProgress, getProgressStats, isBootcampCompleted } from '@/lib/storage';
 
 export default function LessonPage() {
@@ -26,35 +25,28 @@ export default function LessonPage() {
   const [showFinalCode, setShowFinalCode] = useState(false);
 
   useEffect(() => {
-    // Load lesson data from API
-    (async () => {
-      const lessonsList = await fetchLessons(instructorId, levelId);
-      if (Array.isArray(lessonsList)) {
-        // map to Lesson type minimal shape
-        const mapped = lessonsList.map((l: any) => ({ id: l.id, title: l.title, description: '', videoUrl: l.videoUrl }));
-        setAllLessons(mapped);
-      }
+    // Load lesson data
+    const fakeLessons: Lesson[] = [
+      {
+        id: 'lesson-1',
+        title: 'Market Structure Basics',
+        description: 'Understanding support and resistance levels',
+        videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+        quiz: [
+          {
+            question: 'What is a support level?',
+            options: ['Price floor', 'Price ceiling', 'Volatility measure'],
+            answer: 0,
+          },
+        ],
+      },
+    ];
 
-      const lessonDetail = await fetchLessonById(lessonId);
-      if (lessonDetail) {
-        const mappedQuiz = Array.isArray(lessonDetail.questions)
-          ? lessonDetail.questions.map((q: any) => ({
-              question: q.questionText,
-              options: [q.optionA, q.optionB, q.optionC],
-              answer: q.correctOption === 'A' ? 0 : q.correctOption === 'B' ? 1 : 2,
-              explanation: q.explanation || undefined,
-            }))
-          : undefined;
-
-        setLesson({
-          id: lessonDetail.id,
-          title: lessonDetail.title,
-          description: lessonDetail.description || '',
-          videoUrl: lessonDetail.videoUrl || '',
-          quiz: mappedQuiz,
-        });
-      }
-    })();
+    const lesson = fakeLessons.find((l) => l.id === lessonId);
+    if (lesson) {
+      setLesson(lesson);
+      setAllLessons(fakeLessons);
+    }
 
     // Load progress
     const userProgress = getUserProgress(instructorId, levelId);
